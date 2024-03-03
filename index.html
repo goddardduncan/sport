@@ -95,8 +95,8 @@
                 // Check if enter key is pressed
                 else if (event.key === "Enter") {
                     if (selectedRowIndex !== -1) {
-                        const selectedRow = tableRows[selectedRowIndex];
-                        const image = selectedRow.querySelector('img');
+                        const selectedRowS = tableRows[selectedRowIndex];
+                        const image = selectedRowS.querySelector('img');
                         const channelLink = image.dataset.channelLink;
                         window.location.href = channelLink;
 
@@ -111,9 +111,9 @@
             // Function to scroll the selected row into view
             function scrollSelectedRowIntoView() {
                 const tableRows = document.querySelectorAll('table tr');
-                const selectedRow = tableRows[selectedRowIndex];
+                const selectedRowS = tableRows[selectedRowIndex];
                 const stickyRowHeight = document.querySelector('th').offsetHeight; // Get the height of the sticky row
-                const selectedRowTop = selectedRow.getBoundingClientRect().top; // Get the top position of the selected row relative to the viewport
+                const selectedRowTop = selectedRowS.getBoundingClientRect().top; // Get the top position of the selected row relative to the viewport
                 const offset = selectedRowTop - stickyRowHeight; // Calculate the offset to scroll to
 
                 window.scrollBy({
