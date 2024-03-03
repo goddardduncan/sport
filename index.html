@@ -102,8 +102,8 @@
 
                         // Store the selected channel in localStorage
                         const channelId = image.dataset.channelId;
-                        localStorage.setItem('selectedChannel', channelId);
-                        localStorage.setItem('prevChannel', channelId);
+                        localStorage.setItem('selectedChannelS', channelId);
+                        //localStorage.setItem('prevChannel', channelId);
                     }
                 }
             });
@@ -280,13 +280,13 @@ channelLinkMap = {
                     scrollSelectedRowIntoView();
 
                     // Check if there's a previously selected channel stored in localStorage
-                    const storedChannel = localStorage.getItem('selectedChannel');
-                    if (storedChannel) {
+                    const storedChannelS = localStorage.getItem('selectedChannelS');
+                    if (storedChannelS) {
                         // Find the row corresponding to the stored channel and select it
-                        const storedChannelRow = table.querySelector(`img[data-channel-id="${storedChannel}"]`).parentNode.parentNode;
+                        const storedChannelRowS = table.querySelector(`img[data-channel-id="${storedChannelS}"]`).parentNode.parentNode;
                         const rows = table.querySelectorAll('tr');
                         rows.forEach((row, index) => {
-                            if (row === storedChannelRow) {
+                            if (row === storedChannelRowS) {
                                 row.classList.add("selected");
                                 selectedRowIndex = index;
                             }
