@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="https://goddardduncan.github.io/epg/favicon.ico" type="image/x-icon">
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="300">
+    <title>Pluto</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        table {
+            border-collapse: collapse;
+            margin: 10px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid white;
+        }
+        th {
+            background-color: #333;
+            font-size: 20px;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        img {
+            width: 80px;
+            height: 50px;
+        }
+        tr:not(:first-child).selected {
+            background-color: #ffcc00; /* Yellow background color */
+            color: black; /* Black text color */
+        }
+    </style>
+</head>
+<body>
+    <h1>Pluto Guide</h1>
+    <table>
+        <tr>
+            <th>Channel</th> 
+            <th> </th>
+            <th>What's Playing</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>What's Up Next</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+        </tr>
+
+        <script>
+        // Check if the page is being shown from the bfcache (back-forward cache)
+  	    window.addEventListener('pageshow', function(event) {
+  	        if (event.persisted) { 
+	            location.reload();
+		        }
+	        });
+         // Variable to keep track of the currently selected row
+            let selectedRowIndex = -1;
+
+            // Function to handle key presses
+            document.addEventListener("keydown", function(event) {
+                event.preventDefault(); // Prevent default scrolling behavior
+                const tableRows = document.querySelectorAll('table tr');
+
+                // Check if up arrow key is pressed
+                if (event.key === "ArrowUp") {
+                    if (selectedRowIndex > 0) {
+                        tableRows[selectedRowIndex].classList.remove("selected");
+                        selectedRowIndex--;
+                        tableRows[selectedRowIndex].classList.add("selected");
+                        scrollSelectedRowIntoView();
+                    }
+                }
+		// Check if left arrow key is pressed
+                else if (event.key === "ArrowLeft") {
+                    window.location.href = "https://goddardduncan.github.io/epg/";
+                }
+                // Check if down arrow key is pressed
+                else if (event.key === "ArrowDown") {
+                    if (selectedRowIndex < tableRows.length - 1) {
+                        if (selectedRowIndex !== -1) {
+                            tableRows[selectedRowIndex].classList.remove("selected");
+                        }
+                        selectedRowIndex++;
+                        tableRows[selectedRowIndex].classList.add("selected");
+                        scrollSelectedRowIntoView();
+                    }
+                }
+
+                // Check if enter key is pressed
+                else if (event.key === "Enter") {
+                    if (selectedRowIndex !== -1) {
+                        const selectedRow = tableRows[selectedRowIndex];
+                        const image = selectedRow.querySelector('img');
+                        const channelLink = image.dataset.channelLink;
+                        window.location.href = channelLink;
+
+                        // Store the selected channel in localStorage
+                        const channelId = image.dataset.channelId;
+                        localStorage.setItem('selectedChannel', channelId);
+                        localStorage.setItem('prevChannel', channelId);
+                    }
+                }
+            });
+
+            // Function to scroll the selected row into view
+            function scrollSelectedRowIntoView() {
+                const tableRows = document.querySelectorAll('table tr');
+                const selectedRow = tableRows[selectedRowIndex];
+                const stickyRowHeight = document.querySelector('th').offsetHeight; // Get the height of the sticky row
+                const selectedRowTop = selectedRow.getBoundingClientRect().top; // Get the top position of the selected row relative to the viewport
+                const offset = selectedRowTop - stickyRowHeight; // Calculate the offset to scroll to
+
+                window.scrollBy({
+                    top: offset,
+                    behavior: 'smooth'
+                });
+            }
+
+            const table = document.querySelector('table');
+
+            const xmlData = "https://i.mjh.nz/PlutoTV/us.xml";
+            const timezoneOffsetInMinutes = new Date().getTimezoneOffset();
+
+            // Map of channel IDs to their desired names
+// Map of channel IDs to their desired names
+channelMap = {
+    "5e9f2c05172a0f0007db4786": "CBS Sports HQ",
+    "5a74b8e1e22a61737979c6bf": "FOX Sports",
+    "6549306c83595c000815a696": "NBC Sports",
+    "5e66968a70f34c0007d050be": "MLB",
+    "5de94dacb394a300099fa22a": "PGA TOUR",
+    "65493029ab052400089e9d2f": "GolfPass",
+    "63a0e33a45264d000850ed7e": "Golazo Network",
+    "56340779a738201b4ccfeac9": "Pluto TV Sports",
+    "5812b0f2237a6ff45d16c3f9": "Fight",
+    "5ebc8688f3697d00072f7cf8": "Bellator MMA",
+    "6334a574605f140007e233c4": "PFL MMA",
+    "59b722526996084038c01e1b": "TNA Wrestling",
+    "5417a212ff9fba68282fbf5e": "GLORY Kickboxing",
+    "5df975e2b27cf5000921c102": "beIN SPORTS XTRA",
+    "5616f9c0ada51f8004c4b091": "World Poker Tour",
+    "5fc54366b04b2300072e31af": "PokerGo",
+    "65c69b683ba51e00084534a3": "Monster Jam",
+    "6400f731d200410008f9b339": "MotorTrend FAST TV",
+    "63b48016d9dd51000828fa37": "POWERNATION",
+    "611468532f5f180007fbbc9c": "MAVTV Select",
+}
+
+channelLinkMap = {
+    "5e9f2c05172a0f0007db4786": "https://r.mjh.nz/PlutoTV/5e9f2c05172a0f0007db4786-alt.m3u8",
+    "5a74b8e1e22a61737979c6bf": "https://r.mjh.nz/PlutoTV/5a74b8e1e22a61737979c6bf-alt.m3u8",
+    "6549306c83595c000815a696": "https://r.mjh.nz/PlutoTV/6549306c83595c000815a696-alt.m3u8",
+    "5e66968a70f34c0007d050be": "https://r.mjh.nz/PlutoTV/5e66968a70f34c0007d050be-alt.m3u8",
+    "5de94dacb394a300099fa22a": "https://r.mjh.nz/PlutoTV/5de94dacb394a300099fa22a-alt.m3u8",
+    "65493029ab052400089e9d2f": "https://r.mjh.nz/PlutoTV/65493029ab052400089e9d2f-alt.m3u8",
+    "63a0e33a45264d000850ed7e": "https://r.mjh.nz/PlutoTV/63a0e33a45264d000850ed7e-alt.m3u8",
+    "56340779a738201b4ccfeac9": "https://r.mjh.nz/PlutoTV/56340779a738201b4ccfeac9-alt.m3u8",
+    "5812b0f2237a6ff45d16c3f9": "https://r.mjh.nz/PlutoTV/5812b0f2237a6ff45d16c3f9-alt.m3u8",
+    "5ebc8688f3697d00072f7cf8": "https://r.mjh.nz/PlutoTV/5ebc8688f3697d00072f7cf8-alt.m3u8",
+    "6334a574605f140007e233c4": "https://r.mjh.nz/PlutoTV/6334a574605f140007e233c4-alt.m3u8",
+    "59b722526996084038c01e1b": "https://r.mjh.nz/PlutoTV/59b722526996084038c01e1b-alt.m3u8",
+    "5417a212ff9fba68282fbf5e": "https://r.mjh.nz/PlutoTV/5417a212ff9fba68282fbf5e-alt.m3u8",
+    "5df975e2b27cf5000921c102": "https://r.mjh.nz/PlutoTV/5df975e2b27cf5000921c102-alt.m3u8",
+    "5616f9c0ada51f8004c4b091": "https://r.mjh.nz/PlutoTV/5616f9c0ada51f8004c4b091-alt.m3u8",
+    "5fc54366b04b2300072e31af": "https://r.mjh.nz/PlutoTV/5fc54366b04b2300072e31af-alt.m3u8",
+    "65c69b683ba51e00084534a3": "https://r.mjh.nz/PlutoTV/65c69b683ba51e00084534a3-alt.m3u8",
+    "6400f731d200410008f9b339": "https://r.mjh.nz/PlutoTV/6400f731d200410008f9b339-alt.m3u8",
+    "63b48016d9dd51000828fa37": "https://r.mjh.nz/PlutoTV/63b48016d9dd51000828fa37-alt.m3u8",
+    "611468532f5f180007fbbc9c": "https://r.mjh.nz/PlutoTV/611468532f5f180007fbbc9c-alt.m3u8",
+}
+
+
+
+
+            fetch(xmlData)
+                .then(response => response.text())
+                .then(str => new window.DOMParser().parseFromString(str, "text/xml"))
+                .then(data => {
+                    const programs = data.getElementsByTagName("programme");
+                    const currentTime = new Date();
+                    currentTime.setTime(currentTime.getTime() + (timezoneOffsetInMinutes * 60 * 1000));
+                    const options = { hour12: true, hour: "numeric", minute: "numeric" };
+
+                    // Sort the channels based on their order in the channelMap
+                    const sortedChannels = Object.keys(channelMap).sort((a, b) => {
+                        return Object.keys(channelMap).indexOf(a) - Object.keys(channelMap).indexOf(b);
+                    });
+
+                    // Loop through the sorted channels and generate table rows accordingly
+                    sortedChannels.forEach(channelID => {
+                        // Find the programs associated with the current channelID
+                        const channelPrograms = Array.from(programs).filter(program => program.getAttribute("channel") === channelID);
+
+                        // Proceed with generating table rows for each program in the channelPrograms
+                        channelPrograms.forEach((program, index) => { // Added 'index' to get the next program
+                            // Fill the table with the channels
+                            const channel = channelID;
+                            const title = program.getElementsByTagName("title")[0].childNodes[0].nodeValue;
+                            const start = new Date(program.getAttribute("start").replace(" +0000", "").replace(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, "$1-$2-$3T$4:$5:$6"));
+                            const end = new Date(program.getAttribute("stop").replace(" +0000", "").replace(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, "$1-$2-$3T$4:$5:$6"));
+                            const icon = program.getElementsByTagName("icon")[0].getAttribute("src");
+
+                            // Map the channel ID to its desired name
+                            const mappedChannel = channelMap[channel] || channel;
+                            const mappedChannelLink = channelLinkMap[channel] || channel;
+
+                            // Only show currently playing programs
+                            if (currentTime >= start && currentTime <= end) {
+                                const row = document.createElement("tr");
+
+                                const channelCell = document.createElement("td");
+                                channelCell.appendChild(document.createTextNode(mappedChannel));
+                                row.appendChild(channelCell);
+
+                                const iconCell = document.createElement("td");
+                                const iconImg = document.createElement("img");
+                                iconImg.src = icon;
+                                iconImg.addEventListener("click", function() {
+                                    //window.open(mappedChannelLink);
+                                    window.location.href = mappedChannelLink;
+                                    localStorage.setItem('prevChannel', channelID);
+                                    localStorage.setItem('selectedChannel', channelID);
+                                });
+                                iconImg.dataset.channelLink = mappedChannelLink; // Store channel link in dataset
+                                iconImg.dataset.channelId = channel; // Store channel ID in dataset
+                                iconCell.appendChild(iconImg);
+                                row.appendChild(iconCell);
+
+                                const titleCell = document.createElement("td");
+                                titleCell.appendChild(document.createTextNode(title));
+                                row.appendChild(titleCell);
+
+                                const startCell = document.createElement("td");
+                                const adjustedStart = new Date(start.getTime() - timezoneOffsetInMinutes * 60 * 1000); // add time zone offset to the start time
+                                startCell.appendChild(document.createTextNode(adjustedStart.toLocaleTimeString("en-AU", options)));
+                                row.appendChild(startCell);
+
+                                const endCell = document.createElement("td");
+                                const adjustedEnd = new Date(end.getTime() - timezoneOffsetInMinutes * 60 * 1000); // add time zone offset to the end time
+                                endCell.appendChild(document.createTextNode(adjustedEnd.toLocaleTimeString("en-AU", options)));
+                                row.appendChild(endCell);
+
+                                // Get details of the next program
+                                const nextProgram = channelPrograms[index + 1]; // Get the next program
+                                if (nextProgram) { // Check if next program exists
+                                    const Ntitle = nextProgram.getElementsByTagName("title")[0].childNodes[0].nodeValue;
+                                    const Nstart = new Date(nextProgram.getAttribute("start").replace(" +0000", "").replace(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, "$1-$2-$3T$4:$5:$6"));
+                                    const Nend = new Date(nextProgram.getAttribute("stop").replace(" +0000", "").replace(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, "$1-$2-$3T$4:$5:$6"));
+
+                                    // Add cells for the next show
+                                    const NtitleCell = document.createElement("td");
+                                    NtitleCell.appendChild(document.createTextNode(Ntitle));
+                                    row.appendChild(NtitleCell);
+
+                                    const nextStartCell = document.createElement("td");
+                                    const adjustedNextStart = new Date(Nstart.getTime() - timezoneOffsetInMinutes * 60 * 1000); // add time zone offset to the start time
+                                    nextStartCell.appendChild(document.createTextNode(adjustedNextStart.toLocaleTimeString("en-AU", options)));
+                                    row.appendChild(nextStartCell);
+
+                                    const nextEndCell = document.createElement("td");
+                                    const adjustedNextEnd = new Date(Nend.getTime() - timezoneOffsetInMinutes * 60 * 1000); // add time zone offset to the start time
+                                    nextEndCell.appendChild(document.createTextNode(adjustedNextEnd.toLocaleTimeString("en-AU", options)));
+                                    row.appendChild(nextEndCell);
+                                }
+
+                                table.appendChild(row);
+                            }
+                        });
+                    });
+
+                    // Highlight the first row initially
+                    table.querySelector('tr').classList.add("selected");
+                    selectedRowIndex = 0;
+                    scrollSelectedRowIntoView();
+
+                    // Check if there's a previously selected channel stored in localStorage
+                    const storedChannel = localStorage.getItem('selectedChannel');
+                    if (storedChannel) {
+                        // Find the row corresponding to the stored channel and select it
+                        const storedChannelRow = table.querySelector(`img[data-channel-id="${storedChannel}"]`).parentNode.parentNode;
+                        const rows = table.querySelectorAll('tr');
+                        rows.forEach((row, index) => {
+                            if (row === storedChannelRow) {
+                                row.classList.add("selected");
+                                selectedRowIndex = index;
+                            }
+                        });
+                        scrollSelectedRowIntoView();
+                    }            
+                });
+
+            // Wake lock implementation
+            let wakeLock = null;
+
+            const requestWakeLock = async () => {
+                try {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('Screen wake lock is active');
+                } catch (err) {
+                    console.error(`${err.name}, ${err.message}`);
+                }
+            };
+
+            const handleVisibilityChange = () => {
+                if (wakeLock !== null && document.visibilityState === 'visible') {
+                    requestWakeLock();
+                }
+            };
+
+            document.addEventListener('visibilitychange', handleVisibilityChange);
+
+            // Request a wake lock
+            requestWakeLock();
+        </script>
+    </table>
+</body>
+</html>
